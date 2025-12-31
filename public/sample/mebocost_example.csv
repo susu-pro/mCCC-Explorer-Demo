@@ -1,0 +1,12 @@
+sender,receiver,metabolite,sensor,fdr,score
+Macrophage,Adipocyte,L-glutamine,Slc1a5,1e-6,0.92
+Endothelial,Adipocyte,L-glutamine,Slc1a5,1e-4,0.71
+MSC,Adipocyte,L-glutamine,Slc38a2,0.003,0.55
+Adipocyte,Endothelial,eicosapentaenoic acid,Ffar4,0.02,0.33
+Adipocyte,Adipocyte,docosahexaenoic acid,Ffar4,0.0005,0.62
+CD8T,Adipocyte,L-glutamine,Slc1a5,0.049,0.29
+Pericyte,Adipocyte,L-glutamine,Slc1a5,0.008,0.41
+Adipocyte,MSC,L-lactate,GPR81,0.03,0.27
+Macrophage,Endothelial,histamine,HRH1,0.0002,0.58
+Endothelial,Macrophage,acetylcholine,Chrna7,0.01,0.44
+
