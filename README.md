@@ -1,6 +1,6 @@
 # Harvard Lab mCCC Explorer Demo
 
-面向顶刊审稿工作流的 MEBOCOST mCCC 浏览与分析 Demo：导入结果表 → 论文风格 Network/Matrix/DotPlot → 证据链（claim→evidence→图/表联动）→ 稳健性/负控 → 导出报告。
+MEBOCOST mCCC 浏览与分析 Demo：导入结果表 → 论文风格 Network/Matrix/DotPlot → 证据链（claim→evidence→图/表联动）→ 稳健性/负控 → 导出报告。
 
 ## 启动
 
