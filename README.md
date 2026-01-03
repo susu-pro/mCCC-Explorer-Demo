@@ -48,9 +48,6 @@ Traditional single-cell communication analysis tools often lack transparency and
 | **Data Table** | Sortable, filterable tabular interface with real-time search |
 | **Compare Mode** | Side-by-side differential analysis across experimental conditions |
 
-<p align="center">
-  <img src="./public/demos/Demo-3.GIF" alt="mCCC Explorer Demo-1" width="100%">
-</p>
 
 ### 2. Evidence-First Interaction Design
 
@@ -58,6 +55,10 @@ Traditional single-cell communication analysis tools often lack transparency and
 - **Details Drawer** — Surfaces top partners, metabolites, and sensors with one-click subnet focus
 - **Row-Level Traceability** — Every insight links to specific data rows
 - **Visual Consistency** — Unified color encoding and filter state across views
+
+<p align="center">
+  <img src="./public/demos/Demo-3.GIF" alt="mCCC Explorer Demo-1" width="100%">
+</p>
 
 ### 3. Robustness & Reproducibility Framework
 
@@ -72,6 +73,10 @@ Traditional single-cell communication analysis tools often lack transparency and
 - **Data-Grounded Insights** — Prompts injected with filtered data to prevent hallucination
 - **Structured Output Parsing** — Extracts claims and evidence references from LLM responses
 - **Graceful Fallback** — Demo mock output ensures presentations never fail
+
+<p align="center">
+  <img src="./public/demos/Demo-7.GIF" alt="mCCC Explorer Demo-1" width="100%">
+</p>
 
 ### 5. Multi-Agent Analysis Architecture (J2-Style)
 
