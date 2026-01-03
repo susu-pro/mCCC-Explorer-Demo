@@ -9,9 +9,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
 > **Note:** This is a proof-of-concept developed in a rapid prototyping sprint. Intended for research demonstration and educational purposes. Not production-ready.
-
 <p align="center">
-  <img src="./public/demos/IMG_5359.GIF" alt="mCCC Explorer Demo-2" width="100%">
+  <img src=".public/demos/Demo-4.GIF" alt="mCCC Explorer Demo-1" width="100%">
 </p>
 
 ## Overview
@@ -190,8 +189,12 @@ The landing page:
 - Loads real sample data from `public/sample/communication_result.tsv`
 - Presents 4 sequential analysis agents with typewriter animation
 - Deep-links into Explorer with pre-populated import panel
+<p align="center">
+  <img src="./public/demos/IMG_5359.GIF" alt="mCCC Explorer Demo-1" width="100%">
+</p>
 
 ---
+
 
 ## Data Input
 
