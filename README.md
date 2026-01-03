@@ -1,7 +1,11 @@
 # mCCC Explorer
 
+<<<<<<< HEAD
 > **Review-Grade Interactive Analysis Platform for Metabolite-Mediated Cell–Cell Communication**
 > Transforming MEBOCOST outputs into reproducible, explainable, and publication-ready visual narratives.
+=======
+MEBOCOST mCCC 浏览与分析 Demo：导入结果表 → 论文风格 Network/Matrix/DotPlot → 证据链（claim→evidence→图/表联动）→ 稳健性/负控 → 导出报告。
+>>>>>>> 87075860cdacd057013b0d642eb7472d8b19dc9c
 
 [![React](https://img.shields.io/badge/React-19.2.0-61DAFB?style=flat-square&logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?style=flat-square&logo=vite)](https://vitejs.dev/)
