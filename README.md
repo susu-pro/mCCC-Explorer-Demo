@@ -1,12 +1,6 @@
 # mCCC Explorer
-<<<<<<< HEAD
-
 > **Review-Grade Interactive Analysis Platform for Metabolite-Mediated Cell–Cell Communication**
 > Transforming MEBOCOST outputs into reproducible, explainable, and publication-ready visual narratives.
-=======
-> **Review-Grade Interactive Analysis Platform for Metabolite-Mediated Cell–Cell Communication**
-Transforming MEBOCOST outputs into reproducible, explainable, and publication-ready visual narratives.
->>>>>>> 1a3b5da4cdb3d7fd8f62541ace94ac8a641081e6
 
 [![React](https://img.shields.io/badge/React-19.2.0-61DAFB?style=flat-square&logo=react)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-7.x-646CFF?style=flat-square&logo=vite)](https://vitejs.dev/)
@@ -17,11 +11,12 @@ Transforming MEBOCOST outputs into reproducible, explainable, and publication-re
 > **Note:** This is a proof-of-concept developed in a rapid prototyping sprint. Intended for research demonstration and educational purposes. Not production-ready.
 
 <p align="center">
-  <img src="./public/demo.gif" alt="mCCC Explorer Demo-1" width="100%">
+  <img src="./public/IMG_5359.GIF" alt="mCCC Explorer Demo-1" width="100%">
 </p>
 <p align="center">
-  <img src="./public/demo.gif" alt="mCCC Explorer Demo-2" width="100%">
+  <img src="./public/IMG_5359.GIF" alt="mCCC Explorer Demo-2" width="100%">
 </p>
+
 ## Overview
 
 **mCCC Explorer** is a sophisticated interactive visualization platform designed for exploring **metabolite-mediated cell–cell communication (mCCC)** analysis results. Built to support top-tier journal review workflows, it transforms raw MEBOCOST-style outputs into evidence-backed, reproducible visual narratives.
