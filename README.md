@@ -48,6 +48,10 @@ Traditional single-cell communication analysis tools often lack transparency and
 | **Data Table** | Sortable, filterable tabular interface with real-time search |
 | **Compare Mode** | Side-by-side differential analysis across experimental conditions |
 
+<p align="center">
+  <img src="./public/demos/Demo-3.GIF" alt="mCCC Explorer Demo-1" width="100%">
+</p>
+
 ### 2. Evidence-First Interaction Design
 
 - **Cross-View Binding** — Click any cell type or sender→receiver pair to highlight across all views
