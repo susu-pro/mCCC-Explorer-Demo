@@ -21,9 +21,9 @@ export default function DeltaTableView({ rows }) {
 
   return (
     <div>
-      <div className="row split" style={{ marginBottom: 10, flexWrap: "wrap", gap: 10 }}>
-        <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-          <input className="input" style={{ width: 260 }} placeholder="搜索 sender/receiver" value={q} onChange={(e) => setQ(e.target.value)} />
+        <div className="row split" style={{ marginBottom: 10, flexWrap: "wrap", gap: 10 }}>
+          <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+          <input className="input" style={{ width: 260 }} placeholder="Search sender/receiver" value={q} onChange={(e) => setQ(e.target.value)} />
           <select className="select" style={{ width: 160 }} value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="all">All</option>
             <option value="gained">Gained</option>
@@ -57,7 +57,7 @@ export default function DeltaTableView({ rows }) {
             )
           }
         >
-          导出差异 TSV
+          Export Δ TSV
         </button>
       </div>
 
@@ -111,9 +111,8 @@ export default function DeltaTableView({ rows }) {
         </table>
       </div>
       <div className="viz-note" style={{ marginTop: 10 }}>
-        默认按 |Δ| 排序（Top edges 由左侧过滤控制）。
+        Rows are sorted by |Δ| by default (Top edges is controlled by the left-side filter).
       </div>
     </div>
   );
 }
-

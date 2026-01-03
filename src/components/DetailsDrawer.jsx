@@ -28,30 +28,30 @@ export default function DetailsDrawer({
         <div className="drawer-head">
           <div>
             <div className="card-title">{selectedCell}</div>
-            <div className="card-sub">点击下方按钮可“一键聚焦该 cell”的子网络。</div>
+            <div className="card-sub">Use the buttons below to one-click focus into this cell's subnetwork.</div>
           </div>
           <button className="btn small" onClick={onClose}>
-            关闭
+            Close
           </button>
         </div>
 
         <div className="drawer-body">
           <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
             <button className="btn small" onClick={() => onApplyFocus(selectedCell, "any")}>
-              聚焦 Any
+              Focus Any
             </button>
             <button className="btn small" onClick={() => onApplyFocus(selectedCell, "outgoing")}>
-              聚焦 Out
+              Focus Out
             </button>
             <button className="btn small" onClick={() => onApplyFocus(selectedCell, "incoming")}>
-              聚焦 In
+              Focus In
             </button>
             {isFocused ? (
               <button className="btn danger small" onClick={onClearFocus}>
-                清除聚焦
+                Clear focus
               </button>
             ) : null}
-            {isFocused ? <span className="pill">当前已聚焦（{focusMode ?? "any"}）</span> : null}
+            {isFocused ? <span className="pill">Focused ({focusMode ?? "any"})</span> : null}
           </div>
 
           <div className="metric">

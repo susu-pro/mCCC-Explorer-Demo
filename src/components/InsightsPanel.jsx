@@ -9,7 +9,10 @@ import { parseStructuredLlmAnswer } from "../lib/llmStructured";
 import { computeNullControl, computeRobustness } from "../lib/robustness";
 import { getLlmApiUrl } from "../lib/llmEnv";
 import ThinkBlock from "./ThinkBlock";
+import SmartLoader from "./SmartLoader";
+import MarkdownLite from "./MarkdownLite";
 import TypewriterMarkdown from "./TypewriterMarkdown";
+import LlmComfortLoader from "./LlmComfortLoader";
 
 function Badge({ tone, children }) {
   const style =
@@ -32,11 +35,11 @@ function KeyValueTable({ title, headers, rows }) {
         <div className="card-title">{title}</div>
         <div className="pill">Top {Math.min(rows.length, 8)}</div>
       </div>
-      <div style={{ height: 10 }} />
-      <div className="scroll" style={{ borderRadius: 12 }}>
-        <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 520 }}>
-          <thead>
-            <tr style={{ background: "rgba(248,250,252,0.94)" }}>
+	      <div style={{ height: 10 }} />
+	      <div className="scroll" style={{ borderRadius: 12 }}>
+	        <table style={{ borderCollapse: "collapse", width: "100%", tableLayout: "fixed" }}>
+	          <thead>
+	            <tr style={{ background: "rgba(248,250,252,0.94)" }}>
               {headers.map((h) => (
                 <th
                   key={h}
@@ -63,15 +66,15 @@ function KeyValueTable({ title, headers, rows }) {
                       padding: "8px 10px",
                       fontSize: 12,
                       borderBottom: "1px solid rgba(15,23,42,0.06)",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      maxWidth: 240,
-                    }}
-                    title={String(c)}
-                  >
-                    {c}
-                  </td>
+	                      whiteSpace: "nowrap",
+	                      overflow: "hidden",
+	                      textOverflow: "ellipsis",
+	                      maxWidth: 240,
+	                    }}
+	                    title={String(c)}
+	                  >
+	                    {c}
+	                  </td>
                 ))}
               </tr>
             ))}
@@ -95,8 +98,6 @@ export default function InsightsPanel({
   onSelectPair,
   onNavigate,
 }) {
-  if (!insights) return <div className="notice">需要先导入数据并完成筛选，才能生成自动摘要/QC。</div>;
-
   const [llmBusy, setLlmBusy] = React.useState(false);
   const [llmError, setLlmError] = React.useState("");
   const [llmResult, setLlmResult] = React.useState({ think: "", markdown: "", payload: null, raw: "" });
@@ -114,9 +115,9 @@ export default function InsightsPanel({
   const [nullBusy, setNullBusy] = React.useState(false);
   const [nullRes, setNullRes] = React.useState(null);
 
-  const hasRec = insights.recommendations && Object.keys(insights.recommendations).length > 0;
-  const md = toMarkdown(insights, title || "MEBOCOST Insights");
-  const baseName = String(fileLabel || insights.kind || "insights").replace(/\s+/g, "_");
+  const hasRec = !!(insights?.recommendations && Object.keys(insights.recommendations).length > 0);
+  const md = React.useMemo(() => (insights ? toMarkdown(insights, title || "MEBOCOST Insights") : ""), [insights, title]);
+  const baseName = String(fileLabel || insights?.kind || "insights").replace(/\s+/g, "_");
 
   const exportMd = () => downloadText(`${baseName}.md`, md, "text/markdown;charset=utf-8");
   const exportJson = () => downloadJson(`${baseName}.json`, insights);
@@ -143,10 +144,10 @@ export default function InsightsPanel({
       buildMcccDataInterpretationPrompt({
         events: llmInputEvents,
         filters: filters ?? null,
-        weightMode: weightMode ?? insights.weightMode,
+        weightMode: weightMode ?? insights?.weightMode,
         maxRows: llmTopRows,
       }),
-    [llmInputEvents, llmTopRows, filters, weightMode, insights.weightMode],
+    [llmInputEvents, llmTopRows, filters, weightMode, insights?.weightMode],
   );
 
   const evidenceRows = React.useMemo(() => {
@@ -167,7 +168,7 @@ export default function InsightsPanel({
       const r = computeRobustness({
         eventsAll: Array.isArray(eventsAll) ? eventsAll : [],
         baseFilters: filters ?? {},
-        weightMode: weightMode ?? insights.weightMode,
+        weightMode: weightMode ?? insights?.weightMode,
         topK: 10,
       });
       setRob(r);
@@ -182,7 +183,7 @@ export default function InsightsPanel({
       const r = computeNullControl({
         eventsAll: Array.isArray(eventsAll) ? eventsAll : [],
         baseFilters: filters ?? {},
-        weightMode: weightMode ?? insights.weightMode,
+        weightMode: weightMode ?? insights?.weightMode,
         n: 60,
         seed: 42,
       });
@@ -203,6 +204,7 @@ export default function InsightsPanel({
       setLlmCfg(cfg);
       const prompt = injectedPromptPreview;
 
+      const t0 = performance.now();
       const resp = await chatCompletions({
         apiKey: cfg.apiKey,
         body: {
@@ -212,14 +214,25 @@ export default function InsightsPanel({
           temperature: 0.2,
         },
       });
+
+      // In demo mock mode, keep the loader visible briefly so users can see progress and "work" happening.
+      const elapsed = performance.now() - t0;
+      if (resp?.mock) {
+        const minMs = 6800;
+        if (elapsed < minMs) await new Promise((r) => setTimeout(r, minMs - elapsed));
+      }
+
       setLlmMeta({ mock: !!resp?.mock, reason: String(resp?.mockReason ?? "") });
+      if (resp?.mock && String(resp?.mockReason ?? "") && String(resp?.mockReason ?? "") !== "ENV_MISSING") {
+        setLlmError("The analysis service is temporarily unavailable (auto-falling back to demo mock output).");
+      }
       const text = extractAssistantText(resp);
-      if (!text) throw new Error("LLM 返回为空（choices[0].message.content 缺失）");
+      if (!text) throw new Error("LLM returned empty content (choices[0].message.content missing).");
       const { think, answer } = splitThink(text);
       const structured = parseStructuredLlmAnswer(answer);
       setLlmResult({ think, ...structured });
     } catch (e) {
-      setLlmError(e instanceof Error ? e.message : "请求失败");
+      setLlmError(e instanceof Error ? e.message : "The analysis service is temporarily unavailable (auto-falling back to demo mock output).");
     } finally {
       setLlmBusy(false);
     }
@@ -228,15 +241,6 @@ export default function InsightsPanel({
   const payloadEntities = llmResult?.payload?.entities ?? null;
   const payloadPatch = llmResult?.payload?.filterPatch ?? null;
   const payloadClaims = Array.isArray(llmResult?.payload?.claims) ? llmResult.payload.claims : [];
-
-  const navigate = (nextView) => {
-    if (typeof onNavigate === "function" && nextView) onNavigate(nextView);
-  };
-
-  const applyPatch = (patch) => {
-    if (!patch || typeof patch !== "object") return;
-    if (typeof onApplyRecommendations === "function") onApplyRecommendations(patch);
-  };
 
   const normalizeArray = (v) => (Array.isArray(v) ? v.filter((x) => typeof x === "string" && x.trim()).map((x) => x.trim()) : []);
 
@@ -248,6 +252,17 @@ export default function InsightsPanel({
     for (const c of cells) out.push({ kind: "cell", value: c });
     return out;
   }, [payloadEntities]);
+
+  if (!insights) return <div className="notice">Import data and apply filters first to generate automated summary/QC.</div>;
+
+  const navigate = (nextView) => {
+    if (typeof onNavigate === "function" && nextView) onNavigate(nextView);
+  };
+
+  const applyPatch = (patch) => {
+    if (!patch || typeof patch !== "object") return;
+    if (typeof onApplyRecommendations === "function") onApplyRecommendations(patch);
+  };
 
   const onEntityClick = (kind, value) => {
     if (kind === "metabolite") {
@@ -288,15 +303,15 @@ export default function InsightsPanel({
         </div>
         <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
           {hasRec ? (
-            <button className="btn small primary" onClick={applyRec} title="把建议写回左侧筛选条件（并写入 URL）">
-              一键应用建议
+            <button className="btn small primary" onClick={applyRec} title="Apply the suggested filters on the left (and write them into the URL)">
+              Apply Recommendations
             </button>
           ) : null}
           <button className="btn small" onClick={exportMd}>
-            导出摘要（MD）
+            Export Summary (MD)
           </button>
           <button className="btn small" onClick={exportJson}>
-            导出 JSON
+            Export JSON
           </button>
         </div>
       </div>
@@ -305,8 +320,8 @@ export default function InsightsPanel({
         <div className="card pad soft" style={{ boxShadow: "var(--shadow-soft)" }}>
           <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
             <div>
-              <div className="card-title">DeepSeek 解读（基于当前筛选表）</div>
-              <div className="card-sub">会把当前筛选结果的 Top N 行（CSV）拼进 Prompt，避免泛泛科普。</div>
+	              <div className="card-title">LLM Interpretation (using the current filtered table)</div>
+	              <div className="card-sub">Injects the Top N filtered rows (CSV) into the prompt to avoid generic commentary.</div>
             </div>
             <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
               <button className="btn small primary" disabled={llmBusy} onClick={runLlm}>
@@ -315,16 +330,16 @@ export default function InsightsPanel({
                   <span>{llmBusy ? "Computing..." : "Generate Insights (LLM)"}</span>
                 </span>
               </button>
-              <button className="btn small" disabled={llmBusy} onClick={() => setLlmCfg(loadLlmConfig())}>
-                刷新配置
-              </button>
+	              <button className="btn small" disabled={llmBusy} onClick={() => setLlmCfg(loadLlmConfig())}>
+	                Refresh Config
+	              </button>
               <button
                 className="btn small"
                 disabled={!llmResult.markdown}
                 onClick={() => navigator.clipboard.writeText(llmResult.markdown || "")}
-              >
-                复制正文
-              </button>
+	              >
+	                Copy Output
+	              </button>
             </div>
           </div>
 
@@ -339,34 +354,34 @@ export default function InsightsPanel({
           </div>
 
           <div style={{ height: 10 }} />
-          <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
-            <div className="field" style={{ minWidth: 160 }}>
-              <div className="label">Top rows</div>
-              <select className="select" value={String(llmTopRows)} onChange={(e) => setLlmTopRows(Number(e.target.value))} disabled={llmBusy}>
-                <option value="10">10</option>
-                <option value="20">20</option>
-                <option value="40">40</option>
-              </select>
-            </div>
-            <div className="field" style={{ flex: 1, minWidth: 220 }}>
-              <div className="label">Sender（可选）</div>
-              <input className="input" value={llmSender} onChange={(e) => setLlmSender(e.target.value)} placeholder="例如 T cells" disabled={llmBusy} />
-            </div>
-            <div className="field" style={{ flex: 1, minWidth: 220 }}>
-              <div className="label">Receiver（可选）</div>
-              <input className="input" value={llmReceiver} onChange={(e) => setLlmReceiver(e.target.value)} placeholder="例如 B cells" disabled={llmBusy} />
-            </div>
-          </div>
+	          <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
+	            <div className="field" style={{ minWidth: 0 }}>
+	              <div className="label">Top rows</div>
+	              <select className="select" value={String(llmTopRows)} onChange={(e) => setLlmTopRows(Number(e.target.value))} disabled={llmBusy}>
+	                <option value="10">10</option>
+	                <option value="20">20</option>
+	                <option value="40">40</option>
+	              </select>
+	            </div>
+	            <div className="field" style={{ flex: 1, minWidth: 0 }}>
+		              <div className="label">Sender (optional)</div>
+		              <input className="input" value={llmSender} onChange={(e) => setLlmSender(e.target.value)} placeholder="e.g., T cells" disabled={llmBusy} />
+	            </div>
+	            <div className="field" style={{ flex: 1, minWidth: 0 }}>
+		              <div className="label">Receiver (optional)</div>
+		              <input className="input" value={llmReceiver} onChange={(e) => setLlmReceiver(e.target.value)} placeholder="e.g., B cells" disabled={llmBusy} />
+	            </div>
+	          </div>
 
           <div style={{ height: 10 }} />
           <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-            <button className="btn small" type="button" disabled={llmBusy} onClick={() => navigator.clipboard.writeText(injectedCsvPreview)}>
-              复制注入 CSV
-            </button>
-            <button className="btn small" type="button" disabled={llmBusy} onClick={() => navigator.clipboard.writeText(injectedPromptPreview)}>
-              复制 Prompt
-            </button>
-          </div>
+	            <button className="btn small" type="button" disabled={llmBusy} onClick={() => navigator.clipboard.writeText(injectedCsvPreview)}>
+	              Copy Injected CSV
+	            </button>
+	            <button className="btn small" type="button" disabled={llmBusy} onClick={() => navigator.clipboard.writeText(injectedPromptPreview)}>
+	              Copy Prompt
+	            </button>
+	          </div>
 
           <div style={{ height: 10 }} />
           <details className="details-block">
@@ -384,12 +399,30 @@ export default function InsightsPanel({
             </div>
           ) : null}
 
-          {llmBusy ? (
+              {llmBusy ? (
             <div key={`busy-${llmRunId}`} className="anim-in" style={{ marginTop: 10, display: "grid", gap: 10 }}>
+              <div className="card pad" style={{ boxShadow: "var(--shadow-soft)" }}>
+                <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
+                  <div className="card-title">LLM Output</div>
+                  <SmartLoader
+                    intervalMs={1800}
+                    messages={[
+                      "Preparing filtered evidence…",
+                      "Checking mapping and thresholds…",
+                      "Extracting key entities…",
+                      "Building claim → evidence links…",
+                      "Drafting a structured report…",
+                      "Finalizing (almost there)…",
+                    ]}
+                  />
+                </div>
+                <div style={{ height: 10 }} />
+                <LlmComfortLoader mockHint={!apiUrl} />
+              </div>
               <div className="think-block pulse">
                 <div className="row split">
                   <div className="think-summary" style={{ fontSize: 12, fontWeight: 800 }}>
-                    View Reasoning Process (AI 思考过程)
+                    View Reasoning Process
                   </div>
                   <span className="pill think-pill">Thinking…</span>
                 </div>
@@ -415,7 +448,7 @@ export default function InsightsPanel({
                 <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
                   <div>
                     <div className="card-title">Robustness & Negative Control</div>
-                    <div className="card-sub">面向审稿：结论稳定性（多参数变体）+ null 对照（随机化）。</div>
+                    <div className="card-sub">For review: stability across parameter variants + randomized null controls.</div>
                   </div>
                   <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
                     <button className="btn small" disabled={robBusy} onClick={runRobustness} type="button">
@@ -445,7 +478,7 @@ export default function InsightsPanel({
                         </ul>
                       </div>
                     ) : (
-                      <div className="notice">Robustness：未发现明显不稳定（仍建议结合生物先验复核）。</div>
+                      <div className="notice">Robustness: no obvious instability detected (still validate with biological priors).</div>
                     )}
 
                     <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
@@ -453,12 +486,12 @@ export default function InsightsPanel({
                       <span className="pill">TopK: {rob.topK}</span>
                     </div>
 
-                    <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
-                      <div className="card pad" style={{ flex: 1, minWidth: 420, boxShadow: "var(--shadow-soft)" }}>
-                        <div className="card-title">Baseline Top pairs stability</div>
+	                    <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
+	                      <div className="card pad" style={{ flex: 1, minWidth: 0, boxShadow: "var(--shadow-soft)" }}>
+	                        <div className="card-title">Baseline Top pairs stability</div>
                         <div style={{ height: 10 }} />
                         <div className="scroll" style={{ borderRadius: 12 }}>
-                          <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 520 }}>
+	                    <table style={{ borderCollapse: "collapse", width: "100%", tableLayout: "fixed" }}>
                             <thead>
                               <tr style={{ background: "rgba(248,250,252,0.94)" }}>
                                 {["Sender", "Receiver", "Support", "avgRank"].map((h) => (
@@ -482,7 +515,7 @@ export default function InsightsPanel({
                                 <tr
                                   key={`${p.sender}\t${p.receiver}`}
                                   style={{ background: idx % 2 ? "white" : "rgba(248,250,252,0.55)", cursor: "pointer" }}
-                                  title="点击：跳转 Table 并绑定到图"
+                                  title="Click to jump to Table and bind highlight to charts"
                                   onClick={() => {
                                     if (typeof onSelectPair === "function") onSelectPair({ sender: p.sender, receiver: p.receiver });
                                     navigate("table");
@@ -507,11 +540,11 @@ export default function InsightsPanel({
                         </div>
                       </div>
 
-                      <div className="card pad" style={{ flex: 1, minWidth: 420, boxShadow: "var(--shadow-soft)" }}>
-                        <div className="card-title">Baseline Top metabolites stability</div>
+	                      <div className="card pad" style={{ flex: 1, minWidth: 0, boxShadow: "var(--shadow-soft)" }}>
+	                        <div className="card-title">Baseline Top metabolites stability</div>
                         <div style={{ height: 10 }} />
                         <div className="scroll" style={{ borderRadius: 12 }}>
-                          <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 520 }}>
+	                    <table style={{ borderCollapse: "collapse", width: "100%", tableLayout: "fixed" }}>
                             <thead>
                               <tr style={{ background: "rgba(248,250,252,0.94)" }}>
                                 {["Metabolite", "Support", "avgRank"].map((h) => (
@@ -535,7 +568,7 @@ export default function InsightsPanel({
                                 <tr
                                   key={m.metabolite}
                                   style={{ background: idx % 2 ? "white" : "rgba(248,250,252,0.55)", cursor: "pointer" }}
-                                  title="点击：按该代谢物过滤并跳转 Table"
+                                  title="Click to filter by this metabolite and jump to Table"
                                   onClick={() => {
                                     applyPatch({ metaboliteQuery: m.metabolite });
                                     navigate("table");
@@ -572,8 +605,8 @@ export default function InsightsPanel({
                     </div>
                     <div className={nullRes.pValue < 0.05 ? "notice" : "warning"} style={{ marginTop: 10 }}>
                       {nullRes.pValue < 0.05
-                        ? "Null 对照：观测到的结构集中度显著高于随机（支持“网络结构非随机”）。"
-                        : "Null 对照：观测到的结构集中度未显著高于随机（需谨慎：可能过滤过强/样本过小/结构不稳）。"}
+                        ? "Null control: observed structure concentration is significantly higher than random (supports non-random network structure)."
+                        : "Null control: observed structure concentration is not significantly higher than random (be cautious: filters may be too strict, sample too small, or structure unstable)."}
                       <div style={{ marginTop: 6 }} className="subtle">
                         {nullRes.note}
                       </div>
@@ -586,8 +619,8 @@ export default function InsightsPanel({
                 <div className="card pad" style={{ marginTop: 10, boxShadow: "var(--shadow-soft)" }}>
                   <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
                     <div>
-                      <div className="card-title">Claims (审稿可追溯)</div>
-                      <div className="card-sub">每条 claim 都绑定 evidence_row_ids；点击证据编号跳转 Table 并高亮对应边。</div>
+                      <div className="card-title">Claims (traceable)</div>
+                      <div className="card-sub">Each claim is linked to evidence_row_ids; click an ID to jump to Table and highlight the corresponding edge.</div>
                     </div>
                     <div className="pill">{payloadClaims.length} claims</div>
                   </div>
@@ -612,7 +645,7 @@ export default function InsightsPanel({
                               <span
                                 className="pill"
                                 style={{ background: tone.bg, borderColor: tone.bd, color: tone.fg, fontWeight: 800 }}
-                                title="审稿人关心：置信度不是结论强弱，而是对当前筛选/口径的稳健程度"
+                                title="Confidence reflects robustness under the current filtering/weighting choices, not 'how strong' the conclusion is"
                               >
                                 {String(c?.confidence || "medium").toUpperCase()}
                               </span>
@@ -625,7 +658,7 @@ export default function InsightsPanel({
                                   type="button"
                                   className="chip"
                                   onClick={() => selectEvidenceRowId(rid)}
-                                  title="点击：跳转 Table 并高亮该 RowId 对应的 sender→receiver"
+                                  title="Click to jump to Table and highlight the sender→receiver for this RowId"
                                 >
                                   evidence #{rid}
                                 </button>
@@ -658,12 +691,12 @@ export default function InsightsPanel({
                 <div className="card pad" style={{ marginTop: 10, boxShadow: "var(--shadow-soft)" }}>
                   <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
                     <div>
-                      <div className="card-title">Key entities（可点击）</div>
-                      <div className="card-sub">点击后会把筛选条件写回左侧（并写入 URL）。</div>
+                      <div className="card-title">Key Entities (clickable)</div>
+                      <div className="card-sub">Click to apply a filter on the left (and write it into the URL).</div>
                     </div>
                     {payloadPatch && typeof payloadPatch === "object" ? (
                       <button className="btn small primary" onClick={() => applyPatch(payloadPatch)}>
-                        一键应用 LLM 建议筛选
+                        Apply LLM Filter Patch
                       </button>
                     ) : null}
                   </div>
@@ -727,7 +760,7 @@ export default function InsightsPanel({
                             navigate("network");
                           }}
                           type="button"
-                          title="点击：选择该边并跳转到 Network（同时绑定到 Matrix/DotPlot/Table 高亮）"
+                          title="Click to select this pair and jump to Network (also binds highlight to Matrix/DotPlot/Table)"
                         >
                           pair: {s} → {r}
                         </button>
@@ -747,13 +780,13 @@ export default function InsightsPanel({
                   <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
                     <div>
                       <div className="card-title">Evidence (Injected Top rows)</div>
-                      <div className="card-sub">点击行：跳转 Table 并高亮该 sender→receiver；右侧按钮可直接绑定到图。</div>
+                      <div className="card-sub">Click a row to jump to Table and highlight the sender→receiver; use the buttons to bind it to charts.</div>
                     </div>
                     <div className="pill">rows: {evidenceRows.length}</div>
                   </div>
                   <div style={{ height: 10 }} />
-                  <div className="scroll" style={{ borderRadius: 12 }}>
-                    <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 860 }}>
+	                  <div className="scroll" style={{ borderRadius: 12 }}>
+	                    <table style={{ borderCollapse: "collapse", width: "100%", tableLayout: "fixed" }}>
                       <thead>
                         <tr style={{ background: "rgba(248,250,252,0.94)" }}>
                           {["#", "Sender", "Receiver", "Metabolite", "FDR", "Bind"].map((h) => (
@@ -785,27 +818,55 @@ export default function InsightsPanel({
                               if (typeof onSelectPair === "function") onSelectPair({ sender: r.sender, receiver: r.receiver });
                               navigate("table");
                             }}
-                            title="点击跳转 Table 并高亮"
+                            title="Click to jump to Table and highlight"
                           >
-                            <td style={{ padding: "8px 10px", fontSize: 12, borderBottom: "1px solid rgba(15,23,42,0.06)" }}>
-                              {r.idx}
-                            </td>
-                            <td style={{ padding: "8px 10px", fontSize: 12, borderBottom: "1px solid rgba(15,23,42,0.06)" }}>
-                              {r.sender}
-                            </td>
-                            <td style={{ padding: "8px 10px", fontSize: 12, borderBottom: "1px solid rgba(15,23,42,0.06)" }}>
-                              {r.receiver}
-                            </td>
-                            <td style={{ padding: "8px 10px", fontSize: 12, borderBottom: "1px solid rgba(15,23,42,0.06)" }}>
-                              <button
-                                type="button"
-                                className="chip"
+	                            <td
+	                              style={{
+	                                padding: "8px 10px",
+	                                fontSize: 12,
+	                                borderBottom: "1px solid rgba(15,23,42,0.06)",
+	                                overflowWrap: "anywhere",
+	                              }}
+	                            >
+	                              {r.idx}
+	                            </td>
+	                            <td
+	                              style={{
+	                                padding: "8px 10px",
+	                                fontSize: 12,
+	                                borderBottom: "1px solid rgba(15,23,42,0.06)",
+	                                overflowWrap: "anywhere",
+	                              }}
+	                            >
+	                              {r.sender}
+	                            </td>
+	                            <td
+	                              style={{
+	                                padding: "8px 10px",
+	                                fontSize: 12,
+	                                borderBottom: "1px solid rgba(15,23,42,0.06)",
+	                                overflowWrap: "anywhere",
+	                              }}
+	                            >
+	                              {r.receiver}
+	                            </td>
+	                            <td
+	                              style={{
+	                                padding: "8px 10px",
+	                                fontSize: 12,
+	                                borderBottom: "1px solid rgba(15,23,42,0.06)",
+	                                overflowWrap: "anywhere",
+	                              }}
+	                            >
+	                              <button
+	                                type="button"
+	                                className="chip"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   applyPatch({ metaboliteQuery: r.metabolite });
                                   navigate("table");
                                 }}
-                                title="点击：按该代谢物过滤并跳转 Table"
+                                title="Click to filter by this metabolite and jump to Table"
                               >
                                 {r.metabolite || "NA"}
                               </button>
@@ -843,10 +904,10 @@ export default function InsightsPanel({
                 <div className="card pad" style={{ marginTop: 10, boxShadow: "var(--shadow-soft)" }}>
                   <div className="card-title">LLM Report</div>
                   <div style={{ height: 10 }} />
-                  <TypewriterMarkdown markdown={llmResult.markdown} cps={90} entities={mdEntities} onEntityClick={onEntityClick} />
+                  <TypewriterMarkdown markdown={llmResult.markdown} cps={40} entities={mdEntities} onEntityClick={onEntityClick} />
                 </div>
               ) : (
-                <div className="notice">模型未返回正文内容。</div>
+                <div className="notice">The model returned no final answer text.</div>
               )}
             </div>
           ) : null}
@@ -854,7 +915,7 @@ export default function InsightsPanel({
       ) : null}
 
       <div className="card pad" style={{ boxShadow: "var(--shadow-soft)" }}>
-        <div className="card-title">{title || "自动摘要（Summary）"}</div>
+        <div className="card-title">{title || "Auto Summary"}</div>
         <div style={{ height: 10 }} />
         <ul style={{ margin: 0, paddingLeft: 18, color: "rgba(15,23,42,0.82)", fontSize: 13 }}>
           {(insights.summaryLines ?? []).map((l) => (
@@ -865,7 +926,7 @@ export default function InsightsPanel({
 
       <div className="card pad" style={{ boxShadow: "var(--shadow-soft)" }}>
         <div className="row split">
-          <div className="card-title">QC（可解释的质量检查）</div>
+          <div className="card-title">QC (Explainable Checks)</div>
           <div className="pill">{insights.qc?.length ? `${insights.qc.length} items` : "0 item"}</div>
         </div>
         <div style={{ height: 10 }} />
@@ -882,7 +943,7 @@ export default function InsightsPanel({
             ))}
           </div>
         ) : (
-          <div className="notice">未发现明显异常（仍建议结合原始数据与生物学先验复核）。</div>
+          <div className="notice">No obvious issues detected (still validate with raw data and biological priors).</div>
         )}
       </div>
 
@@ -890,13 +951,11 @@ export default function InsightsPanel({
         <div className="card pad" style={{ boxShadow: "var(--shadow-soft)" }}>
           <div className="row split" style={{ flexWrap: "wrap", gap: 10 }}>
             <div>
-              <div className="card-title">建议（Recommendations）</div>
-              <div className="card-sub">可一键写回左侧筛选，用于“快速收敛规模/提高稳健性”。</div>
+              <div className="card-title">Recommendations</div>
+              <div className="card-sub">Apply to the left panel to quickly reduce scale and improve robustness.</div>
             </div>
             <div className="row" style={{ gap: 8 }}>
-              <button className="btn small primary" onClick={applyRec}>
-                应用建议
-              </button>
+              <button className="btn small primary" onClick={applyRec}>Apply</button>
             </div>
           </div>
           <div style={{ height: 10 }} />

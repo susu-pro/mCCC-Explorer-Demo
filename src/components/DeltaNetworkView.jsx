@@ -159,9 +159,9 @@ export default function DeltaNetworkView({ diffRows, mode, minAbsDelta, topEdges
   return (
     <div>
       <div className="row split" style={{ marginBottom: 10, flexWrap: "wrap", gap: 10 }}>
-        <div className="pill">edge color: Δ(B-A)（红增/蓝减） · edge width: |Δ| · node size: Σ|Δ|</div>
+        <div className="pill">edge color: Δ(B-A) (red ↑ / blue ↓) · edge width: |Δ| · node size: Σ|Δ|</div>
         <button className="btn small" onClick={exportPng}>
-          导出 PNG
+          Export PNG
         </button>
       </div>
 
@@ -194,7 +194,7 @@ export default function DeltaNetworkView({ diffRows, mode, minAbsDelta, topEdges
       </div>
 
       <div className="viz-note" style={{ marginTop: 10 }}>
-        当前显示 {edges.length} 条差异边。建议先用左侧过滤（FDR/Flux_PASS/Top edges）再看网络，避免过密。
+        Showing {edges.length} delta edges. Consider filtering first (FDR / Flux_PASS / Top edges) to avoid an overly dense network.
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ function SelectRow({ label, value, options, required, onChange }) {
         {required ? <span style={{ color: "var(--danger)" }}> *</span> : null}
       </div>
       <select className="select" value={value ?? ""} onChange={(e) => onChange(e.target.value)}>
-        <option value="">（未选择）</option>
+        <option value="">(not selected)</option>
         {options.map((o) => (
           <option key={o} value={o}>
             {o}
@@ -44,12 +44,42 @@ function applyMebocostPreset(headers, mapping) {
   return next;
 }
 
-export default function FileImport({ onLoaded, onError }) {
+export default function FileImport({ onLoaded, onError, prefill }) {
   const [fileName, setFileName] = React.useState("");
   const [rows, setRows] = React.useState(null);
   const [headers, setHeaders] = React.useState([]);
   const [mapping, setMapping] = React.useState({ sender: "", receiver: "" });
   const [busy, setBusy] = React.useState(false);
+  const prefillRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (!prefill || !prefill.rows?.length) return;
+    if (busy) return;
+    if (prefillRef.current === prefill) return;
+
+    const desiredName = typeof prefill.fileName === "string" ? prefill.fileName : "";
+    // Don't overwrite a user-imported file with a different name.
+    if (fileName && desiredName && fileName !== desiredName) return;
+
+    prefillRef.current = prefill;
+    const parsed = prefill.rows;
+    const hs = headersFromRows(parsed);
+    const m = prefill.mapping && typeof prefill.mapping === "object" ? prefill.mapping : guessMapping(hs);
+
+    setFileName(desiredName);
+    setRows(parsed);
+    setHeaders(hs);
+    setMapping({
+      sender: m.sender || "",
+      receiver: m.receiver || "",
+      metabolite: m.metabolite || undefined,
+      sensor: m.sensor || undefined,
+      score: m.score || undefined,
+      fdr: m.fdr || undefined,
+      fluxPass: m.fluxPass || undefined,
+      annotation: m.annotation || undefined,
+    });
+  }, [prefill, busy, fileName]);
 
   const loadRows = async (name, getRows) => {
     setBusy(true);
@@ -71,7 +101,7 @@ export default function FileImport({ onLoaded, onError }) {
         annotation: guess.annotation,
       });
     } catch (e) {
-      onError(e instanceof Error ? e.message : "导入失败");
+      onError(e instanceof Error ? e.message : "Import failed");
     } finally {
       setBusy(false);
     }
@@ -100,14 +130,29 @@ export default function FileImport({ onLoaded, onError }) {
           className="btn small"
           disabled={busy}
           onClick={() =>
-            loadRows("mebocost_example.csv", async () => {
-              const res = await fetch("/sample/mebocost_example.csv");
-              if (!res.ok) throw new Error("加载示例失败");
+            loadRows("communication_result.tsv", async () => {
+              const res = await fetch("/sample/communication_result.tsv");
+              if (!res.ok) throw new Error("Failed to load sample");
               return parseDelimitedText(await res.text());
             })
           }
         >
-          加载示例
+          Load real sample
+        </button>
+
+        <button
+          className="btn small"
+          disabled={busy}
+          onClick={() =>
+            loadRows("mebocost_example.csv", async () => {
+              const res = await fetch("/sample/mebocost_example.csv");
+              if (!res.ok) throw new Error("Failed to load sample");
+              return parseDelimitedText(await res.text());
+            })
+          }
+          title="A tiny toy dataset for a quick smoke test"
+        >
+          Load toy sample
         </button>
 
         <div
@@ -122,7 +167,7 @@ export default function FileImport({ onLoaded, onError }) {
           }}
         >
           <input {...getInputProps()} />
-          {isDragActive ? "松开导入…" : "拖拽文件 / 点击选择"}
+          {isDragActive ? "Drop to import…" : "Drag a file / Click to select"}
         </div>
 
         {headers?.length ? (
@@ -130,18 +175,18 @@ export default function FileImport({ onLoaded, onError }) {
             className="btn small"
             disabled={busy}
             onClick={() => setMapping((m) => applyMebocostPreset(headers, m))}
-            title="对 MEBOCOST 默认输出列（Sender/Receiver/Metabolite_Name/Sensor/permutation_test_fdr/Commu_Score）一键映射"
+            title="One-click mapping for MEBOCOST default columns (Sender/Receiver/Metabolite_Name/Sensor/permutation_test_fdr/Commu_Score)"
           >
-            MEBOCOST 预设
+            MEBOCOST preset
           </button>
         ) : null}
       </div>
 
       <div style={{ marginTop: 10 }} className="muted">
         <span style={{ fontSize: 12 }}>
-          当前文件：{" "}
-          <span style={{ fontWeight: 700, color: "var(--text)" }}>{fileName ? fileName : "未选择"}</span>
-          {rows ? `（${rows.length} 行）` : ""}
+          File:{" "}
+          <span style={{ fontWeight: 700, color: "var(--text)" }}>{fileName ? fileName : "(none)"}</span>
+          {rows ? ` (${rows.length} rows)` : ""}
         </span>
       </div>
 
@@ -200,14 +245,14 @@ export default function FileImport({ onLoaded, onError }) {
 
       <div className="row split" style={{ marginTop: 12 }}>
         <div className="muted" style={{ fontSize: 12 }}>
-          {busy ? "处理中…" : canStart ? "可以开始分析" : "请至少映射 Sender/Receiver"}
+          {busy ? "Processing…" : canStart ? "Ready to analyze" : "Map at least Sender/Receiver"}
         </div>
         <button
           className={`btn ${canStart ? "primary" : ""}`}
           disabled={!canStart || busy}
           onClick={() => onLoaded({ rawRows: rows, columnMapping: mapping, fileName })}
         >
-          开始
+          Start
         </button>
       </div>
     </div>

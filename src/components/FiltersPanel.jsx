@@ -19,7 +19,7 @@ export default function FiltersPanel({ disabled, filters, setFilters, onReset })
           <input
             className="input"
             inputMode="decimal"
-            placeholder="例如 0.05（留空=不过滤）"
+            placeholder="e.g., 0.05 (empty = no filter)"
             value={typeof filters.fdrMax === "number" ? String(filters.fdrMax) : ""}
             onChange={(e) => updateNum("fdrMax", e.target.value)}
           />
@@ -30,7 +30,7 @@ export default function FiltersPanel({ disabled, filters, setFilters, onReset })
           <input
             className="input"
             inputMode="numeric"
-            placeholder="例如 300（留空=不过滤）"
+            placeholder="e.g., 300 (empty = no limit)"
             value={typeof filters.topEdges === "number" ? String(filters.topEdges) : ""}
             onChange={(e) => updateNum("topEdges", e.target.value)}
           />
@@ -40,7 +40,7 @@ export default function FiltersPanel({ disabled, filters, setFilters, onReset })
           <div className="label">Metabolite</div>
           <input
             className="input"
-            placeholder="模糊匹配（例如 glutamine）"
+            placeholder="Fuzzy match (e.g., glutamine)"
             value={filters.metaboliteQuery}
             onChange={(e) => setFilters({ ...filters, metaboliteQuery: e.target.value })}
           />
@@ -50,7 +50,7 @@ export default function FiltersPanel({ disabled, filters, setFilters, onReset })
           <div className="label">Sensor</div>
           <input
             className="input"
-            placeholder="模糊匹配（例如 Slc1a5）"
+            placeholder="Fuzzy match (e.g., Slc1a5)"
             value={filters.sensorQuery}
             onChange={(e) => setFilters({ ...filters, sensorQuery: e.target.value })}
           />
@@ -60,7 +60,7 @@ export default function FiltersPanel({ disabled, filters, setFilters, onReset })
           <div className="label">Annotation</div>
           <input
             className="input"
-            placeholder="例如 Transporter / Receptor（留空=不过滤）"
+            placeholder="e.g., Transporter / Receptor (empty = no filter)"
             value={filters.annotationQuery ?? ""}
             onChange={(e) => setFilters({ ...filters, annotationQuery: e.target.value })}
           />
@@ -85,7 +85,7 @@ export default function FiltersPanel({ disabled, filters, setFilters, onReset })
             checked={filters.includeSelfLoops}
             onChange={(e) => setFilters({ ...filters, includeSelfLoops: e.target.checked })}
           />
-          包含 self-loop（sender==receiver）
+          Include self-loops (sender == receiver)
         </label>
 
         {filters.focusCell ? (
@@ -106,7 +106,7 @@ export default function FiltersPanel({ disabled, filters, setFilters, onReset })
 
       <div className="row" style={{ justifyContent: "flex-end", marginTop: 12 }}>
         <button className="btn small" onClick={onReset}>
-          重置
+          Reset
         </button>
       </div>
     </div>

@@ -6,4 +6,3 @@ export function getLlmApiUrl() {
 export function isMockMode() {
   return !getLlmApiUrl();
 }
-

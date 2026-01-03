@@ -47,7 +47,7 @@ function listFromLines(lines) {
 }
 
 function renderQc(qc) {
-  if (!qc?.length) return "<div class='k'>无显著问题</div>";
+  if (!qc?.length) return "<div class='k'>No significant issues detected</div>";
   const items = qc
     .map((q) => {
       const tone = q.level === "warn" ? "rgba(153,27,27,.96)" : "rgba(30,64,175,.96)";
@@ -115,8 +115,8 @@ function renderRobustness(robustness) {
         <div style="font-weight: 800; color: rgba(153,27,27,.96);">Warnings</div>
         <ul style="margin: 6px 0 0; padding-left: 18px;">${warnings}</ul>
       </div>`
-        : `<div style="margin-top: 10px; border:1px solid rgba(37,99,235,.18); background: rgba(37,99,235,.05); border-radius: 12px; padding: 10px 12px; color: rgba(30,64,175,.96);">未发现明显不稳定（仍建议结合生物先验复核）。</div>`
-    }
+        : `<div style="margin-top: 10px; border:1px solid rgba(37,99,235,.18); background: rgba(37,99,235,.05); border-radius: 12px; padding: 10px 12px; color: rgba(30,64,175,.96);">No obvious instability detected (still recommended to cross-check with biological priors).</div>`
+      }
     <div class="two section">
       <div class="card"><div class="k">Baseline top pairs stability</div>${pairTable}</div>
       <div class="card"><div class="k">Baseline top metabolites stability</div>${metTable}</div>
@@ -168,7 +168,7 @@ export function generateSingleReport({ fileName, filters, weightMode, summary, t
   const nullHtml = renderNullControl(nullControl);
 
   return `<!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -193,8 +193,8 @@ export function generateSingleReport({ fileName, filters, weightMode, summary, t
 </head>
 <body>
   <div class="wrap">
-    <h1>MEBOCOST mCCC Explorer Report（Single）</h1>
-    <div class="sub">${escapeHtml(fileName ?? "未命名")} · ${escapeHtml(now)} · weight=${escapeHtml(wm)}</div>
+    <h1>MEBOCOST mCCC Explorer Report (Single)</h1>
+    <div class="sub">${escapeHtml(fileName ?? "Untitled")} · ${escapeHtml(now)} · weight=${escapeHtml(wm)}</div>
 
     <div class="grid">
       <div class="card"><div class="k">Rows</div><div class="v">${summary.rows}</div></div>
@@ -269,7 +269,7 @@ export function generateCompareReport({ fileA, fileB, filters, weightMode, summa
   const insightsHtml = renderInsights(insights);
 
   return `<!doctype html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -293,7 +293,7 @@ export function generateCompareReport({ fileA, fileB, filters, weightMode, summa
 </head>
 <body>
   <div class="wrap">
-    <h1>MEBOCOST mCCC Explorer Report（Compare）</h1>
+    <h1>MEBOCOST mCCC Explorer Report (Compare)</h1>
     <div class="sub">${escapeHtml(fileA ?? "A")} vs ${escapeHtml(fileB ?? "B")} · ${escapeHtml(now)} · weight=${escapeHtml(wm)}</div>
 
     <div class="grid">

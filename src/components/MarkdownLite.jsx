@@ -227,7 +227,7 @@ function parseBlocks(md) {
   return blocks;
 }
 
-export default function MarkdownLite({ markdown, entities, onEntityClick }) {
+function MarkdownLite({ markdown, entities, onEntityClick }) {
   const blocks = React.useMemo(() => parseBlocks(markdown), [markdown]);
   return (
     <div className="md">
@@ -268,3 +268,5 @@ export default function MarkdownLite({ markdown, entities, onEntityClick }) {
     </div>
   );
 }
+
+export default React.memo(MarkdownLite);

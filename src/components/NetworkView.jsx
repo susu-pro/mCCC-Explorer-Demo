@@ -148,7 +148,7 @@ export default function NetworkView({ nodes, links, selectedCell, onSelectCell, 
     <div className="viz-view">
       <div className="row" style={{ justifyContent: "flex-end", marginBottom: 10 }}>
         <button className="btn small" onClick={exportPng}>
-          导出 PNG
+          Export PNG
         </button>
       </div>
 
@@ -184,7 +184,7 @@ export default function NetworkView({ nodes, links, selectedCell, onSelectCell, 
       </div>
 
       <div className="viz-note" style={{ marginTop: 10 }}>
-        边宽/颜色按权重（当前：{weightLabel}）；点击节点在右侧查看 Top partners/metabolites/sensors，并可一键聚焦子网络。
+        Edge width/color follow the weight (current: {weightLabel}). Click a node to see top partners/metabolites/sensors on the right, then one-click focus into a subnetwork.
       </div>
     </div>
   );

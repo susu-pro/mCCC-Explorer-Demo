@@ -68,7 +68,7 @@ function SmallTable({ title, rows }) {
         </table>
       </div>
       <div className="viz-note" style={{ marginTop: 8 }}>
-        Δ(B-A) &gt; 0 表示该分层在 B 更强。
+        Δ(B-A) &gt; 0 means this stratum is stronger in B.
       </div>
     </div>
   );
@@ -154,7 +154,7 @@ export default function CompareView({ eventsA, eventsB, weightMode, filters, onA
 
       {tab === "insights" ? (
         <InsightsPanel
-          title="对比自动摘要 / QC"
+          title="Compare auto summary / QC"
           fileLabel="compare-insights"
           insights={insights}
           onApplyRecommendations={onApplyRecommendations}
@@ -180,7 +180,7 @@ export default function CompareView({ eventsA, eventsB, weightMode, filters, onA
                 style={{ width: 170 }}
                 value={String(netTopNodes)}
                 onChange={(e) => setNetTopNodes(Number(e.target.value))}
-                title="仅显示差异最强的 Top N 节点（按 Σ|Δ|）"
+                title="Show only the Top N most changed nodes (by Σ|Δ|)"
               >
                 <option value="0">All nodes</option>
                 <option value="20">Top 20 nodes</option>
@@ -192,7 +192,7 @@ export default function CompareView({ eventsA, eventsB, weightMode, filters, onA
                 className="input"
                 style={{ width: 180 }}
                 inputMode="decimal"
-                placeholder="min |Δ| (可选)"
+                placeholder="min |Δ| (optional)"
                 value={netMinAbs ? String(netMinAbs) : ""}
                 onChange={(e) => {
                   const v = e.target.value.trim();
@@ -201,7 +201,7 @@ export default function CompareView({ eventsA, eventsB, weightMode, filters, onA
                 }}
               />
             </div>
-            <div className="pill">tips: 先用左侧过滤缩小规模</div>
+            <div className="pill">Tip: narrow the scope with left-side filters first</div>
           </div>
           <DeltaNetworkView
             diffRows={diff.rows}

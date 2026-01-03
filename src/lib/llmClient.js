@@ -6,6 +6,15 @@ function normalizeBaseUrl(baseUrl) {
   return s.endsWith("/") ? s.slice(0, -1) : s;
 }
 
+function hasAssistantContent(json) {
+  const c0 = json?.choices?.[0];
+  const content = c0?.message?.content;
+  const text = c0?.text;
+  if (typeof content === "string" && content.trim()) return true;
+  if (typeof text === "string" && text.trim()) return true;
+  return false;
+}
+
 export async function chatCompletions({ apiKey, body, signal, timeoutMs = 12000 }) {
   const baseUrl = getLlmApiUrl();
   if (!baseUrl) return mockChatCompletions({ body, reason: "ENV_MISSING" });
@@ -30,12 +39,20 @@ export async function chatCompletions({ apiKey, body, signal, timeoutMs = 12000 
   }
   clearTimeout(timer);
 
-  const text = await res.text();
+  let text = "";
+  try {
+    text = await res.text();
+  } catch {
+    return mockChatCompletions({ body, reason: "READ_BODY_FAILED" });
+  }
   if (!res.ok) {
     return mockChatCompletions({ body, reason: `HTTP_${res.status}` });
   }
   try {
     const json = JSON.parse(text);
+    if (!hasAssistantContent(json)) {
+      return mockChatCompletions({ body, reason: "INVALID_RESPONSE_SHAPE" });
+    }
     json.mock = false;
     return json;
   } catch {
@@ -44,6 +61,9 @@ export async function chatCompletions({ apiKey, body, signal, timeoutMs = 12000 
 }
 
 export function extractAssistantText(resp) {
-  const t = resp?.choices?.[0]?.message?.content;
-  return typeof t === "string" ? t : "";
+  const c0 = resp?.choices?.[0];
+  const msg = c0?.message?.content;
+  if (typeof msg === "string") return msg;
+  const text = c0?.text;
+  return typeof text === "string" ? text : "";
 }

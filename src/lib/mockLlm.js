@@ -55,37 +55,37 @@ function buildDemoStructuredContent({ prompt, reason }) {
   const e3 = rows[2]?.rowId ?? 3;
 
   const think =
-    "我将严格基于注入的 Top rows CSV 作答。\n" +
-    `1) 先扫描 Metabolite 列，提取重复出现/高权重的候选：${[m1, m2, m3].join(", ")}。\n` +
-    "2) 结合 Sender/Receiver 分布，定位最突出的细胞对与可能的方向性。\n" +
-    "3) 将每条结论绑定到 RowId（evidence_row_ids）以便审稿可追溯。\n" +
-    (reason ? `4) 当前为演示模式（${reason}），用于确保无 GPU 也能展示完整闭环。\n` : "");
+    "I will answer strictly based on the injected Top rows CSV.\n" +
+    `1) Scan the Metabolite column and surface frequent / high-weight candidates: ${[m1, m2, m3].join(", ")}.\n` +
+    "2) Use Sender/Receiver distribution to identify dominant cell-pair axes and likely directionality.\n" +
+    "3) Bind each claim to RowId (evidence_row_ids) for traceable review.\n" +
+    (reason ? `4) Demo fallback mode (${reason}) is enabled to keep the full workflow runnable without external LLM access.\n` : "");
 
   const reportMd =
-    `### 代谢物介导的 mCCC 结果解读（Demo）\n\n` +
-    `1. **关键代谢物信号**：在注入的 Top rows 中，**${m1}**、**${m2}**、**${m3}** 出现频繁/权重靠前，提示它们可能驱动当前筛选口径下的主要通讯轴。\n` +
-    `2. **方向性与细胞对**：优先关注 Top 边对应的 sender→receiver（见 evidence），因为这些组合在 Network/Matrix/DotPlot 中会形成最稳定的结构骨架。\n` +
-    `3. **统计口径提醒**：若观察到大量 **FDR=0**（常见于有限 permutation），建议在报告中说明并进行截断/敏感性分析，避免 -log10(FDR) 夸大。\n` +
-    `4. **与 LR 互补**：LR 更偏“配体-受体信号通路”，mCCC/MEBOCOST 更偏“代谢供需/通量可行性”；二者一致时强化因果叙事，不一致时优先排查过滤口径与代谢注释覆盖。\n\n` +
-    `总结：在当前筛选与权重口径下，Top rows 指向由 **${m1}/${m2}/${m3}** 主导的通讯信号；建议用 claims→evidence→图/表联动复核，并用 robustness/null control 提升审稿可信度。`;
+    `### Metabolite-mediated mCCC interpretation (Demo)\n\n` +
+    `1. **Key metabolite signals**: In the injected Top rows, **${m1}**, **${m2}**, and **${m3}** appear frequently / with high weights, suggesting they may drive the dominant communication axes under the current filters.\n` +
+    `2. **Directionality & cell pairs**: Prioritize the top sender→receiver edges (see evidence), because they form the most stable structural backbone across Network/Matrix/DotPlot views.\n` +
+    `3. **Statistical caution**: If you observe many **FDR=0** values (common with limited permutations), document it and apply caps / sensitivity checks to avoid inflating -log10(FDR).\n` +
+    `4. **Complementarity with LR**: LR emphasizes ligand–receptor signaling pathways, while mCCC/MEBOCOST emphasizes metabolite supply–demand / flux feasibility. Agreement strengthens the story; disagreements often point to filtering choices or annotation coverage.\n\n` +
+    `Takeaway: Under the current filters and weight mode, the Top rows suggest a communication signal dominated by **${m1}/${m2}/${m3}**. Use the claims→evidence chain to cross-check in linked plots, and add robustness / null controls to improve review confidence.`;
 
   const payload = {
     claims: [
       {
         id: "C1",
-        title: "Top 代谢物信号具有可追溯证据",
+        title: "Traceable evidence for top metabolite signals",
         confidence: "high",
-        statement_md: `- 在 Top rows 中 **${m1}**/**${m2}**/**${m3}** 多次出现，提示其在当前口径下主导通讯强度。`,
+        statement_md: `- In the Top rows, **${m1}**/**${m2}**/**${m3}** recur, suggesting they dominate communication strength under the current settings.`,
         evidence_row_ids: [e1, e2, e3],
-        caveats: ["演示模式输出；真实部署时仍需 robustness 与 null control 支撑稳健性。"],
+        caveats: ["Demo-mode output; in a real deployment, support this with robustness checks and null controls."],
       },
       {
         id: "C2",
-        title: "优先复核最强 sender→receiver 结构骨架",
+        title: "Validate the strongest sender→receiver backbone first",
         confidence: "medium",
-        statement_md: "- 建议先在 Network/Matrix 绑定并复核 Top 边，再扩展到代谢物/注释分层解释。",
+        statement_md: "- Start by validating the top edges in Network/Matrix, then expand to metabolite/annotation-stratified interpretation.",
         evidence_row_ids: [e1],
-        caveats: ["TopEdges 截断会影响结构外观；请做敏感性分析。"],
+        caveats: ["TopEdges truncation affects the appearance; run a sensitivity analysis."],
       },
     ],
     entities: {
@@ -120,4 +120,3 @@ export function mockChatCompletions({ body, reason = "MOCK_FALLBACK" }) {
     usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 },
   };
 }
-

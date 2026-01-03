@@ -40,11 +40,11 @@ export default function TableView({ events, selectedPair, onSelectPair }) {
   return (
     <div className="viz-view">
       <div className="row split" style={{ marginBottom: 10 }}>
-        <div className="pill">最多显示前 2000 行</div>
+        <div className="pill">Showing up to 2000 rows</div>
         <input
           className="input"
           style={{ width: 320 }}
-          placeholder="在 sender/receiver/metabolite/sensor 中搜索"
+          placeholder="Search sender/receiver/metabolite/sensor"
           value={q}
           onChange={(e) => setQ(e.target.value)}
         />
@@ -77,7 +77,7 @@ export default function TableView({ events, selectedPair, onSelectPair }) {
                 ref={isHl(e) ? hlRef : null}
                 className={isHl(e) ? "row-pair-hl" : ""}
                 style={{ background: idx % 2 ? "white" : "rgba(248,250,252,0.55)", cursor: "pointer" }}
-                title="点击：高亮并绑定到 Network/Matrix/DotPlot"
+                title="Click to highlight and bind to Network/Matrix/DotPlot"
                 onClick={() => (typeof onSelectPair === "function" ? onSelectPair({ sender: e.sender, receiver: e.receiver }) : null)}
               >
                 <td style={{ padding: "8px 10px", fontSize: 12, borderBottom: "1px solid rgba(15,23,42,0.06)" }}>

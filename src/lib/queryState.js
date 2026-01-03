@@ -32,20 +32,31 @@ export function readQueryState(search) {
   return { view, weightMode: w, filters };
 }
 
-export function writeQueryState({ view, filters }) {
-  const sp = new URLSearchParams();
+export function writeQueryStateTo(sp, { view, filters }) {
   sp.set("view", view);
   if (typeof filters.fdrMax === "number") sp.set("fdr", String(filters.fdrMax));
+  else sp.delete("fdr");
   if (typeof filters.topEdges === "number") sp.set("top", String(filters.topEdges));
+  else sp.delete("top");
   sp.set("self", filters.includeSelfLoops ? "1" : "0");
   if (filters.metaboliteQuery?.trim()) sp.set("m", filters.metaboliteQuery.trim());
+  else sp.delete("m");
   if (filters.sensorQuery?.trim()) sp.set("s", filters.sensorQuery.trim());
+  else sp.delete("s");
   if (filters.annotationQuery?.trim()) sp.set("ann", filters.annotationQuery.trim());
+  else sp.delete("ann");
   if (filters.fluxPass && (filters.fluxPass === "all" || filters.fluxPass === "pass" || filters.fluxPass === "unpass")) {
     sp.set("flux", filters.fluxPass);
-  }
+  } else sp.delete("flux");
   if (filters.focusCell?.trim()) sp.set("focus", filters.focusCell.trim());
+  else sp.delete("focus");
   if (filters.focusMode) sp.set("focusMode", filters.focusMode);
+  else sp.delete("focusMode");
+}
+
+export function writeQueryState({ view, filters }) {
+  const sp = new URLSearchParams();
+  writeQueryStateTo(sp, { view, filters });
   const qs = sp.toString();
   return qs ? `?${qs}` : "";
 }

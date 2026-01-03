@@ -133,29 +133,29 @@ export function buildSingleInsights({ events, mapping, filters, weightMode }) {
   if (stats.fdr.has && stats.fdr.zeroRate > 0.3) {
     qc.push({
       level: "warn",
-      title: "FDR=0 比例偏高",
-      detail: `当前筛选下 FDR=0 占比 ${(stats.fdr.zeroRate * 100).toFixed(1)}%（min=${stats.fdr.min ?? "NA"}）。建议提高 MEBOCOST 的 n_shuffle（例如 5000/10000）或报告时对 -log10(FDR) 做上限截断。`,
+      title: "High FDR=0 rate",
+      detail: `Under the current filters, FDR=0 accounts for ${(stats.fdr.zeroRate * 100).toFixed(1)}% (min=${stats.fdr.min ?? "NA"}). Consider increasing MEBOCOST n_shuffle (e.g., 5000/10000) or capping -log10(FDR) in reporting.`,
     });
   }
   if (stats.flux.hasAny && stats.flux.passRate < 0.35) {
     qc.push({
       level: "info",
-      title: "PASS 占比偏低",
-      detail: `Flux_PASS=PASS 占比 ${(stats.flux.passRate * 100).toFixed(1)}%。建议先对 PASS-only 分析，再对比 UNPASS 作为补充。`,
+      title: "Low PASS rate",
+      detail: `Flux_PASS=PASS rate is ${(stats.flux.passRate * 100).toFixed(1)}%. Consider focusing on PASS-only first, and using UNPASS as a sensitivity check.`,
     });
   }
   if (stats.ann.hasAny && stats.ann.topShare > 0.8) {
     qc.push({
       level: "info",
-      title: "Annotation 分布偏斜",
-      detail: `单一 Annotation 占比 ${(stats.ann.topShare * 100).toFixed(1)}%。建议在结论中说明主要由 ${stats.ann.rows[0]?.key} 驱动，或对其它类型单独复查。`,
+      title: "Skewed annotation distribution",
+      detail: `A single Annotation accounts for ${(stats.ann.topShare * 100).toFixed(1)}%. Consider stating that results are largely driven by ${stats.ann.rows[0]?.key}, or reviewing other annotation types separately.`,
     });
   }
   if (stats.density.senders > 120 || stats.density.receivers > 120) {
     qc.push({
       level: "info",
-      title: "节点较多，建议降噪",
-      detail: `sender/receiver 数量较多（${stats.density.senders}/${stats.density.receivers}）。建议降低 Top edges 或聚焦关键细胞群（focus）。`,
+      title: "Many nodes: consider denoising",
+      detail: `There are many senders/receivers (${stats.density.senders}/${stats.density.receivers}). Consider lowering Top edges or focusing on key cell groups.`,
     });
   }
 
@@ -171,10 +171,12 @@ export function buildSingleInsights({ events, mapping, filters, weightMode }) {
   const topEdges = aggPairs(events).slice(0, 8);
 
   const summaryLines = [
-    `当前视图：rows=${stats.density.rows}, pairs=${stats.density.pairs}, senders=${stats.density.senders}, receivers=${stats.density.receivers}, density=${stats.density.density.toFixed(3)}`,
-    `权重口径：${weightLabel}`,
-    stats.flux.hasAny ? `Flux_PASS：PASS ${(stats.flux.passRate * 100).toFixed(1)}%` : `Flux_PASS：NA（未提供）`,
-    stats.fdr.has ? `FDR：min=${stats.fdr.min ?? "NA"}, max=${stats.fdr.max ?? "NA"}, FDR=0 ${(stats.fdr.zeroRate * 100).toFixed(1)}%` : `FDR：NA（未映射）`,
+    `Current view: rows=${stats.density.rows}, pairs=${stats.density.pairs}, senders=${stats.density.senders}, receivers=${stats.density.receivers}, density=${stats.density.density.toFixed(3)}`,
+    `Weight mode: ${weightLabel}`,
+    stats.flux.hasAny ? `Flux_PASS: PASS ${(stats.flux.passRate * 100).toFixed(1)}%` : "Flux_PASS: NA (not provided)",
+    stats.fdr.has
+      ? `FDR: min=${stats.fdr.min ?? "NA"}, max=${stats.fdr.max ?? "NA"}, FDR=0 ${(stats.fdr.zeroRate * 100).toFixed(1)}%`
+      : "FDR: NA (not mapped)",
   ];
 
   return {
@@ -204,16 +206,16 @@ export function buildCompareInsights({ eventsA, eventsB, diffRows, annDiffRows, 
   if (densityA.rows < 50 || densityB.rows < 50) {
     qc.push({
       level: "warn",
-      title: "对比样本过小",
-      detail: `A/B 任一侧 rows 过少（A=${densityA.rows}, B=${densityB.rows}），差异网络可能不稳定。建议放宽过滤或检查是否导入了“已过滤 TSV”。`,
+      title: "Small sample size for comparison",
+      detail: `Rows are low on at least one side (A=${densityA.rows}, B=${densityB.rows}); the delta network may be unstable. Consider relaxing filters or verifying that you did not import a pre-filtered TSV.`,
     });
   }
 
   if ((gained + lost) / total > 0.85 && total >= 100) {
     qc.push({
       level: "info",
-      title: "A/B 共享边偏少",
-      detail: `当前筛选下 shared=${shared}（占比 ${((shared / total) * 100).toFixed(1)}%）。如果 A/B 来自不同项目或过滤口径不同，这很常见；若本应同口径，请检查列映射、FDR/Score 口径、以及是否对 A/B 做了不同的预过滤。`,
+      title: "Few shared edges between A/B",
+      detail: `Under the current filters, shared=${shared} (${((shared / total) * 100).toFixed(1)}%). This is common when A/B come from different projects or use different filtering. If they should be comparable, verify column mapping, FDR/Score definitions, and whether A/B were pre-filtered differently.`,
     });
   }
 
@@ -223,8 +225,8 @@ export function buildCompareInsights({ eventsA, eventsB, diffRows, annDiffRows, 
   if (hasFlux && Math.abs(fluxA.passRate - fluxB.passRate) > 0.25) {
     qc.push({
       level: "info",
-      title: "Flux_PASS 质量分布差异较大",
-      detail: `PASS 占比差异：A=${(fluxA.passRate * 100).toFixed(1)}%，B=${(fluxB.passRate * 100).toFixed(1)}%。建议先 PASS-only 对比，再将 UNPASS 作为补充敏感性分析。`,
+      title: "Large difference in Flux_PASS quality",
+      detail: `PASS rate differs: A=${(fluxA.passRate * 100).toFixed(1)}%, B=${(fluxB.passRate * 100).toFixed(1)}%. Consider comparing PASS-only first, and using UNPASS as a sensitivity check.`,
     });
   }
 
@@ -234,10 +236,10 @@ export function buildCompareInsights({ eventsA, eventsB, diffRows, annDiffRows, 
   rec.topEdges = Math.max(densityA.pairs, densityB.pairs) > 800 ? 300 : 500;
 
   const summaryLines = [
-    `A：rows=${densityA.rows}, pairs=${densityA.pairs}, senders=${densityA.senders}, receivers=${densityA.receivers}`,
-    `B：rows=${densityB.rows}, pairs=${densityB.pairs}, senders=${densityB.senders}, receivers=${densityB.receivers}`,
-    `差异：total=${diffRows.length}, gained=${gained}, lost=${lost}`,
-    `权重口径：${weightLabel}`,
+    `A: rows=${densityA.rows}, pairs=${densityA.pairs}, senders=${densityA.senders}, receivers=${densityA.receivers}`,
+    `B: rows=${densityB.rows}, pairs=${densityB.pairs}, senders=${densityB.senders}, receivers=${densityB.receivers}`,
+    `Delta: total=${diffRows.length}, gained=${gained}, lost=${lost}`,
+    `Weight mode: ${weightLabel}`,
   ];
 
   const topUp = [...diffRows].sort((a, b) => b.delta - a.delta).slice(0, 8);
@@ -262,7 +264,7 @@ export function toMarkdown(insights, title = "MEBOCOST Insights") {
   for (const l of insights.summaryLines ?? []) lines.push(`- ${l}`);
   lines.push("");
   lines.push("## QC");
-  if (!insights.qc?.length) lines.push("- 无显著问题");
+  if (!insights.qc?.length) lines.push("- No significant issues detected");
   else for (const q of insights.qc) lines.push(`- [${q.level}] ${q.title}: ${q.detail}`);
   lines.push("");
 

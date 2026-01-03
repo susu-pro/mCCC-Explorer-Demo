@@ -4,14 +4,14 @@ import { chatCompletions, extractAssistantText } from "../lib/llmClient";
 import { splitThink } from "../lib/llmThink";
 import { parseStructuredLlmAnswer } from "../lib/llmStructured";
 import { getLlmApiUrl, isMockMode } from "../lib/llmEnv";
-import ThinkBlock from "./ThinkBlock";
+import SmartLoader from "./SmartLoader";
 import TypewriterMarkdown from "./TypewriterMarkdown";
 
 const DEFAULT_PROMPT =
-  "请用中文给出一段简洁但有信息密度的分析：\n" +
-  "主题：Ligand-Receptor Interaction（配体-受体相互作用）。\n" +
-  "要求：说明它在单细胞细胞间通讯（CCC）分析中的意义、常见误读/局限、以及如何与代谢介导的 mCCC/MEBOCOST 结果互补解读。\n" +
-  "输出：3-6 条要点 + 1 段总结（不要写公式）。";
+  "Write a concise but information-dense analysis.\n" +
+  "Topic: Ligand–Receptor Interaction (LR).\n" +
+  "Include: its role in single-cell cell–cell communication (CCC), common pitfalls/limitations, and how it complements metabolite-mediated mCCC/MEBOCOST.\n" +
+  "Output: 3–6 bullet points + 1 short summary paragraph (no formulas).";
 
 export default function LlmPanel() {
   const [cfg, setCfg] = React.useState(() => loadLlmConfig());
@@ -55,13 +55,16 @@ export default function LlmPanel() {
         },
       });
       setMeta({ mock: !!resp?.mock, reason: String(resp?.mockReason ?? "") });
+      if (resp?.mock && String(resp?.mockReason ?? "") && String(resp?.mockReason ?? "") !== "ENV_MISSING") {
+        setError("The analysis service is temporarily unavailable (auto-falling back to demo mock output).");
+      }
       const text = extractAssistantText(resp);
-      if (!text) throw new Error("LLM 返回为空（choices[0].message.content 缺失）");
+      if (!text) throw new Error("LLM returned empty content (choices[0].message.content missing).");
       const { think, answer } = splitThink(text);
       const structured = parseStructuredLlmAnswer(answer);
       setResult({ think, ...structured });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "请求失败");
+      setError(e instanceof Error ? e.message : "The analysis service is temporarily unavailable (auto-falling back to demo mock output).");
     } finally {
       setBusy(false);
     }
@@ -69,10 +72,6 @@ export default function LlmPanel() {
 
   return (
     <div style={{ display: "grid", gap: 12 }}>
-      <div className="notice">
-        部署模式：LLM 端点只从环境变量读取 <span className="mono">VITE_LLM_API_URL</span>。未设置时自动进入 Demo Mock 模式（保证教授打开链接也能演示）。
-      </div>
-
       <div className={isMockMode() ? "warning" : "notice"}>
         <div style={{ fontWeight: 850, marginBottom: 6 }}>LLM Status</div>
         <div>
@@ -84,20 +83,20 @@ export default function LlmPanel() {
       <div className="card pad soft" style={{ boxShadow: "var(--shadow-soft)" }}>
         <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
           <div>
-            <div className="card-title">LLM API 配置</div>
-            <div className="card-sub">只保存 model/apiKey（URL 由 VITE_LLM_API_URL 提供）。</div>
+            <div className="card-title">LLM API Settings</div>
+            <div className="card-sub">Stores model/apiKey only (base URL comes from VITE_LLM_API_URL).</div>
           </div>
           <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
             <button className="btn small" onClick={save} disabled={busy}>
-              保存配置
+              Save
             </button>
             <button className="btn small" onClick={reset} disabled={busy}>
-              重置
+              Reset
             </button>
             <button className="btn small primary" onClick={run} disabled={busy}>
               <span className="row" style={{ gap: 8 }}>
                 {busy ? <span className="spinner" /> : null}
-                <span>{busy ? "Computing..." : "测试连接 / 生成示例"}</span>
+                <span>{busy ? "Computing..." : "Test connection / Generate sample"}</span>
               </span>
             </button>
           </div>
@@ -107,19 +106,19 @@ export default function LlmPanel() {
         <div style={{ display: "grid", gap: 10 }}>
           <div className="field">
             <div className="label">API Base URL</div>
-            <input className="input" value={apiUrl || ""} readOnly placeholder="由 VITE_LLM_API_URL 提供；为空则进入 mock" />
+            <input className="input" value={apiUrl || ""} readOnly placeholder="Provided by VITE_LLM_API_URL; empty → mock mode" />
           </div>
           <div className="field">
             <div className="label">Model</div>
             <input className="input" value={cfg.model} onChange={(e) => setCfg((p) => ({ ...p, model: e.target.value }))} />
           </div>
           <div className="field">
-            <div className="row split" style={{ gap: 10 }}>
-              <div className="label">API Key</div>
-              <button className="btn small" type="button" onClick={() => setShowKey((v) => !v)} disabled={busy}>
-                {showKey ? "隐藏" : "显示"}
-              </button>
-            </div>
+              <div className="row split" style={{ gap: 10 }}>
+                <div className="label">API Key</div>
+                <button className="btn small" type="button" onClick={() => setShowKey((v) => !v)} disabled={busy}>
+                {showKey ? "Hide" : "Show"}
+                </button>
+              </div>
             <input
               className="input"
               type={showKey ? "text" : "password"}
@@ -135,7 +134,7 @@ export default function LlmPanel() {
         <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
           <div>
             <div className="card-title">Prompt</div>
-            <div className="card-sub">用于快速验证连通性；正式“数据注入”请在 Insights 里生成。</div>
+            <div className="card-sub">Quick connectivity check. For data-injected analysis, use Insights.</div>
           </div>
           <span className="pill">max_tokens=500 · temp=0.3</span>
         </div>
@@ -153,23 +152,18 @@ export default function LlmPanel() {
       {busy ? (
         <div key={`busy-${runId}`} className="card pad anim-in" style={{ boxShadow: "var(--shadow-soft)" }}>
           <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
-            <div className="card-title">LLM 输出</div>
-            <span className="pill">Computing…</span>
+            <div className="card-title">LLM Output</div>
+            <SmartLoader />
           </div>
           <div style={{ height: 10 }} />
-          <div className="think-block pulse" style={{ marginBottom: 10 }}>
-            <div className="row split">
-              <div className="think-summary" style={{ fontSize: 12, fontWeight: 800 }}>
-                View Reasoning Process (AI 思考过程)
-              </div>
-              <span className="pill think-pill">Thinking…</span>
-            </div>
-            <div style={{ marginTop: 10, display: "grid", gap: 8 }}>
+          <details className="details-block pulse" open>
+            <summary className="details-summary">🧬 View AI Reasoning Process</summary>
+            <div className="reasoning-pre" aria-hidden="true">
               <div className="skeleton-line" style={{ width: "86%" }} />
               <div className="skeleton-line" style={{ width: "72%" }} />
               <div className="skeleton-line" style={{ width: "80%" }} />
             </div>
-          </div>
+          </details>
           <div style={{ display: "grid", gap: 10 }}>
             <div className="skeleton-line" style={{ width: "92%" }} />
             <div className="skeleton-line" style={{ width: "84%" }} />
@@ -179,17 +173,20 @@ export default function LlmPanel() {
       ) : result.markdown || result.think ? (
         <div className="card pad" style={{ boxShadow: "var(--shadow-soft)" }}>
           <div className="row split" style={{ gap: 10, flexWrap: "wrap" }}>
-            <div className="card-title">LLM 输出</div>
+            <div className="card-title">LLM Output</div>
             <button className="btn small" onClick={() => navigator.clipboard.writeText(result.markdown || "")} disabled={!result.markdown}>
-              复制
+              Copy
             </button>
           </div>
           <div style={{ height: 10 }} />
-          <ThinkBlock think={result.think} />
+          <details className="details-block">
+            <summary className="details-summary">🧬 View AI Reasoning Process</summary>
+            <pre className="reasoning-pre">{result.think?.trim() ? result.think.trim() : "(No reasoning returned.)"}</pre>
+          </details>
           {result.markdown ? (
             <TypewriterMarkdown markdown={result.markdown} cps={90} />
           ) : (
-            <div className="notice">模型未返回正文内容（仅返回了思考过程）。</div>
+            <div className="notice">No final answer returned (only reasoning content).</div>
           )}
           {result.payload ? (
             <details className="details-block" style={{ marginTop: 10 }}>

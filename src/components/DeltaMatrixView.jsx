@@ -45,12 +45,12 @@ export default function DeltaMatrixView({ matrix, selectedCell, onSelectCell }) 
         <div className="pill">heatmap: Δ(B-A)</div>
         <div className="row" style={{ gap: 8 }}>
           <span className="muted" style={{ fontSize: 12 }}>
-            排序
+            Sort
           </span>
           <select className="select" style={{ width: 220 }} value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-            <option value="senderAbs">按 sender |Δ| 总和</option>
-            <option value="receiverAbs">按 receiver |Δ| 总和</option>
-            <option value="absDeltaSum">不排序</option>
+            <option value="senderAbs">By sender Σ|Δ|</option>
+            <option value="receiverAbs">By receiver Σ|Δ|</option>
+            <option value="absDeltaSum">None</option>
           </select>
         </div>
       </div>
@@ -113,9 +113,8 @@ export default function DeltaMatrixView({ matrix, selectedCell, onSelectCell }) 
         </div>
       </div>
       <div className="viz-note" style={{ marginTop: 10 }}>
-        红=在 B 增强，蓝=在 B 减弱（相对 A）。
+        Red = increased in B, blue = decreased in B (relative to A).
       </div>
     </div>
   );
 }
-

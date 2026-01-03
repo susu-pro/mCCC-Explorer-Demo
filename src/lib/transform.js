@@ -42,7 +42,7 @@ export function buildEvents(rows, mapping) {
         report.nonPositiveFdr += 1;
         fdr = undefined;
       } else if (fdr === 0) {
-        // 常见于有限次 permutation：显示为 0，实际应理解为极小值
+        // Common in limited permutation tests: reported as 0, but should be treated as an extremely small value.
         report.zeroFdr += 1;
         fdr = 1e-300;
       } else if (fdr > 1) {
@@ -77,19 +77,19 @@ export function buildEvents(rows, mapping) {
 
 export function summarizeWarnings(report, mapping) {
   const warnings = [];
-  if (!mapping.fdr && !mapping.score) warnings.push("未映射 FDR/Score：可视化权重会回退为 1（建议至少提供其一）。");
-  if (mapping.fdr && report.zeroFdr) warnings.push(`发现 ${report.zeroFdr} 条 FDR=0（已按 1e-300 处理以便计算 -log10(FDR)）。`);
-  if (mapping.fdr && report.nonPositiveFdr) warnings.push(`发现 ${report.nonPositiveFdr} 条 FDR<0（已当作缺失处理）。`);
-  if (mapping.fdr && report.fdrOver1) warnings.push(`发现 ${report.fdrOver1} 条 FDR>1（已当作缺失处理；请确认列是否真的是 FDR）。`);
-  if (mapping.fdr && report.zeroFdr) warnings.push("如果 FDR=0 很多，建议提高 MEBOCOST 的 n_shuffle（例如 1000）以获得更稳定的 FDR。");
+  if (!mapping.fdr && !mapping.score) warnings.push("FDR/Score not mapped: edge weights fall back to 1 (provide at least one if possible).");
+  if (mapping.fdr && report.zeroFdr) warnings.push(`Found ${report.zeroFdr} rows with FDR=0 (treated as 1e-300 to compute -log10(FDR)).`);
+  if (mapping.fdr && report.nonPositiveFdr) warnings.push(`Found ${report.nonPositiveFdr} rows with FDR<0 (treated as missing).`);
+  if (mapping.fdr && report.fdrOver1) warnings.push(`Found ${report.fdrOver1} rows with FDR>1 (treated as missing; please confirm the column is truly FDR).`);
+  if (mapping.fdr && report.zeroFdr) warnings.push("If you have many FDR=0 values, consider increasing MEBOCOST n_shuffle (e.g., 1000) for more stable estimates.");
   if (report.droppedMissingSenderReceiver)
-    warnings.push(`有 ${report.droppedMissingSenderReceiver} 行缺少 Sender/Receiver（已跳过）。`);
+    warnings.push(`Skipped ${report.droppedMissingSenderReceiver} rows missing Sender/Receiver.`);
   if (mapping.fdr && report.nonNumericFdr)
-    warnings.push(`有 ${report.nonNumericFdr} 行 FDR 不是数值（已当作缺失处理）。`);
+    warnings.push(`Found ${report.nonNumericFdr} rows with non-numeric FDR (treated as missing).`);
   if (mapping.score && report.nonNumericScore)
-    warnings.push(`有 ${report.nonNumericScore} 行 Score 不是数值（已当作缺失处理）。`);
+    warnings.push(`Found ${report.nonNumericScore} rows with non-numeric Score (treated as missing).`);
   if (mapping.fluxPass && report.fluxPassMissing)
-    warnings.push(`有 ${report.fluxPassMissing} 行 Flux_PASS 为空（不会被 “PASS-only” 过滤命中）。`);
+    warnings.push(`Found ${report.fluxPassMissing} rows with empty Flux_PASS (they won't match the PASS-only filter).`);
   return warnings;
 }
 

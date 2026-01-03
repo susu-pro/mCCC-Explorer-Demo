@@ -141,9 +141,13 @@ export function computeRobustness({ eventsAll, baseFilters, weightMode, topK = 1
 
   const warnings = [];
   const weakPairs = pairStability.filter((x) => x.support < 0.5).length;
-  if (weakPairs >= Math.ceil(topK / 2)) warnings.push("Top pairs 对过滤参数较敏感：≥一半的 baseline Top 边在多数 variant 中不稳定。");
+  if (weakPairs >= Math.ceil(topK / 2))
+    warnings.push("Top pairs are sensitive to filtering parameters: at least half of baseline Top edges are unstable across most variants.");
   const weakMets = metStability.filter((x) => x.support < 0.5).length;
-  if (weakMets >= Math.ceil(topK / 2)) warnings.push("Top metabolites 对过滤参数较敏感：≥一半的 baseline Top 代谢物在多数 variant 中不稳定。");
+  if (weakMets >= Math.ceil(topK / 2))
+    warnings.push(
+      "Top metabolites are sensitive to filtering parameters: at least half of baseline Top metabolites are unstable across most variants.",
+    );
 
   return {
     kind: "robustness",

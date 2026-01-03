@@ -30,7 +30,7 @@ export function parseDelimitedText(text) {
   });
   if (parsed.errors?.length) {
     const first = parsed.errors[0];
-    throw new Error(`解析失败：${first.message}`);
+    throw new Error(`Parse failed: ${first.message}`);
   }
   return parsed.data ?? [];
 }

@@ -6,7 +6,7 @@ export default function ThinkBlock({ think, defaultOpen = false }) {
   return (
     <details className="think-block" open={defaultOpen}>
       <summary className="think-summary">
-        <span className="think-title">View Reasoning Process (AI 思考过程)</span>
+        <span className="think-title">View Reasoning Process</span>
         <span className="think-meta">
           <span className="pill think-pill">Reasoning</span>
         </span>
