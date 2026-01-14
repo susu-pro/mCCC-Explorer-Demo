@@ -11,7 +11,7 @@
 > **Note:** This is a proof-of-concept developed in a rapid prototyping sprint. Intended for research demonstration and educational purposes. Not production-ready.
 
 <p align="center">
-  <img src="./public/demos/IMG_5359.GIF" alt="mCCC Explorer Demo-2" width="100%">
+  <img src="./public/demos/Demo-4.GIF" alt="mCCC Explorer Demo-1" width="100%">
 </p>
 
 ## Overview
@@ -48,12 +48,17 @@ Traditional single-cell communication analysis tools often lack transparency and
 | **Data Table** | Sortable, filterable tabular interface with real-time search |
 | **Compare Mode** | Side-by-side differential analysis across experimental conditions |
 
+
 ### 2. Evidence-First Interaction Design
 
 - **Cross-View Binding** — Click any cell type or sender→receiver pair to highlight across all views
 - **Details Drawer** — Surfaces top partners, metabolites, and sensors with one-click subnet focus
 - **Row-Level Traceability** — Every insight links to specific data rows
 - **Visual Consistency** — Unified color encoding and filter state across views
+
+<p align="center">
+  <img src="./public/demos/Demo-3.GIF" alt="mCCC Explorer Demo-1" width="100%">
+</p>
 
 ### 3. Robustness & Reproducibility Framework
 
@@ -69,6 +74,10 @@ Traditional single-cell communication analysis tools often lack transparency and
 - **Structured Output Parsing** — Extracts claims and evidence references from LLM responses
 - **Graceful Fallback** — Demo mock output ensures presentations never fail
 
+<p align="center">
+  <img src="./public/demos/Demo-7.GIF" alt="mCCC Explorer Demo-1" width="100%">
+</p>
+
 ### 5. Multi-Agent Analysis Architecture (J2-Style)
 
 The platform is designed around a **multi-agent orchestration paradigm** — decomposing complex mCCC analysis into specialized, composable agents:
@@ -78,13 +87,13 @@ The platform is designed around a **multi-agent orchestration paradigm** — dec
 │  🖥️  Terminal-Style Command Input (Typewriter Animation)     │
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐          │
-│  │  Agent 1    │  │  Agent 2    │  │  Agent 3    │   ...    │
-│  │  Data Load  │→ │  Network    │→ │  Statistics │→         │
-│  │  & Parse    │  │  Analysis   │  │  Summary    │          │
-│  └─────────────┘  └─────────────┘  └─────────────┘          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐           │
+│  │  Agent 1    │  │  Agent 2    │  │  Agent 3    │   ...     │
+│  │  Data Load  │→ │  Network    │→ │  Statistics │→          │
+│  │  & Parse    │  │  Analysis   │  │  Summary    │           │
+│  └─────────────┘  └─────────────┘  └─────────────┘           │
 │       ↓                ↓                ↓                    │
-│  Progress Bar    Progress Bar    Progress Bar               │
+│  Progress Bar    Progress Bar    Progress Bar                │
 │                                                              │
 ├──────────────────────────────────────────────────────────────┤
 │  [Enter Explorer →]  Deep-link with pre-loaded dataset       │
@@ -117,7 +126,7 @@ This design transforms complex bioinformatics workflows into an **engaging, narr
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        mCCC Explorer                             │
+│                        mCCC Explorer                            │
 ├─────────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
 │  │   Landing   │  │  Explorer   │  │    Shared Components    │  │
@@ -131,7 +140,7 @@ This design transforms complex bioinformatics workflows into an **engaging, narr
 │  │   (URL ↔ Filter Sync)       │   └─────────────────────────┘  │
 │  └─────────────────────────────┘                                │
 ├─────────────────────────────────────────────────────────────────┤
-│                        Data Layer                                │
+│                        Data Layer                               │
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────────┐  │
 │  │   Parser    │  │  Transform  │  │      LLM Client         │  │
 │  │  • CSV/TSV  │  │  • Events   │  │  • OpenAI Compatible    │  │
@@ -190,8 +199,13 @@ The landing page:
 - Loads real sample data from `public/sample/communication_result.tsv`
 - Presents 4 sequential analysis agents with typewriter animation
 - Deep-links into Explorer with pre-populated import panel
+  
+<p align="center">
+  <img src="./public/demos/IMG_5359.GIF" alt="mCCC Explorer Demo-1" width="100%">
+</p>
 
 ---
+
 
 ## Data Input
 
