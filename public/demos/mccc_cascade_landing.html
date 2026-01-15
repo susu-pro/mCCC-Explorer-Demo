@@ -756,9 +756,9 @@
 	        <div class="agent-progress"><div class="agent-progress-bar" id="ap4"></div></div>
 	        <div class="muted">Builds reproducible URLs so the exact view can be shared and replayed.</div>
 	        <div class="btns">
-	          <a class="btn green" id="openExplorer" href="/">Open (Network)</a>
-	          <a class="btn" id="openDotplot" href="/">Open (DotPlot)</a>
-	          <a class="btn" id="openCompare" href="/">Open (Compare)</a>
+	          <a class="btn green" id="openExplorer" href="/index.html">Open (Network)</a>
+	          <a class="btn" id="openDotplot" href="/index.html">Open (DotPlot)</a>
+	          <a class="btn" id="openCompare" href="/index.html">Open (Compare)</a>
 	        </div>
 	        <div class="card-body">
 	          <div class="agent-mono" id="agent4"></div>
@@ -919,9 +919,10 @@
         $("status").textContent = "fetching";
         setProgress(18);
 
-        $("openExplorer").href = `/?sample=communication_result.tsv&view=network&flux=pass&fdr=0.05&top=300&self=0`;
-        $("openDotplot").href = `/?sample=communication_result.tsv&view=dotplot&flux=pass&fdr=0.05&top=300&self=0`;
-        $("openCompare").href = `/?view=compare&sampleA=communication_result.tsv&sampleB=mebocost_example.csv&flux=pass&fdr=0.05&top=300&self=0`;
+        // Use /index.html to avoid a "/" redirect on static hosts (Netlify/Vercel).
+        $("openExplorer").href = `/index.html?sample=communication_result.tsv&view=network&flux=pass&fdr=0.05&top=300&self=0`;
+        $("openDotplot").href = `/index.html?sample=communication_result.tsv&view=dotplot&flux=pass&fdr=0.05&top=300&self=0`;
+        $("openCompare").href = `/index.html?view=compare&sampleA=communication_result.tsv&sampleB=mebocost_example.csv&flux=pass&fdr=0.05&top=300&self=0`;
 
         try {
           await sleep(500);

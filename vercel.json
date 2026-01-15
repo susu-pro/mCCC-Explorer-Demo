@@ -1,3 +1,4 @@
 {
+  "redirects": [{ "source": "/", "destination": "/demos/mccc_cascade_landing.html", "permanent": false }],
   "routes": [{ "handle": "filesystem" }, { "src": "/.*", "dest": "/index.html" }]
 }
