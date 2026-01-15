@@ -2,3 +2,15 @@
   command = "pnpm build"
   publish = "dist"
 
+[[redirects]]
+  from = "/"
+  to = "/demos/mccc_cascade_landing.html"
+  status = 302
+  force = true
+
+# SPA fallback (do not override real files like /demos/* or /sample/*)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false

@@ -1,4 +1,4 @@
-/ /demos/mccc_cascade_landing.html 302
+/ /demos/mccc_cascade_landing.html 302!
 
 /demos/* /demos/:splat 200
 /sample/* /sample/:splat 200
